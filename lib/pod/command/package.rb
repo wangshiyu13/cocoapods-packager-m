@@ -20,7 +20,9 @@ module Pod
           ['--configuration', 'Build the specified configuration (e.g. Debug). Defaults to Release'],
           ['--subspecs', 'Only include the given subspecs'],
           ['--spec-sources=private,https://github.com/CocoaPods/Specs.git', 'The sources to pull dependant ' \
-            'pods from (defaults to https://github.com/CocoaPods/Specs.git)']
+            'pods from (defaults to https://github.com/CocoaPods/Specs.git)'],
+          ['--skip_i', '去除打包时的i386架构'],
+          ['--skip_7', '去除打包时的armv7架构']
         ]
       end
 
@@ -45,6 +47,7 @@ module Pod
         @spec = spec_with_path(@name)
         @spec = spec_with_name(@name) unless @spec
         @skip_i = argv.flag?('skip_i')
+        @skip_7 = argv.flag?('skip_7')
         super
       end
 
@@ -152,7 +155,8 @@ module Pod
           @config,
           @bundle_identifier,
           @exclude_deps,
-          @skip_i
+          @skip_i,
+          @skip_7
         )
 
         builder.build(platform, @library)

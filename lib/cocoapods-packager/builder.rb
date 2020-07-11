@@ -1,6 +1,6 @@
 module Pod
   class Builder
-    def initialize(source_dir, static_sandbox_root, dynamic_sandbox_root, public_headers_root, spec, embedded, mangle, dynamic, config, bundle_identifier, exclude_deps, skip_i)
+    def initialize(source_dir, static_sandbox_root, dynamic_sandbox_root, public_headers_root, spec, embedded, mangle, dynamic, config, bundle_identifier, exclude_deps, skip_i, skip_7)
       @source_dir = source_dir
       @static_sandbox_root = static_sandbox_root
       @dynamic_sandbox_root = dynamic_sandbox_root
@@ -13,6 +13,7 @@ module Pod
       @bundle_identifier = bundle_identifier
       @exclude_deps = exclude_deps
       @skip_i = skip_i
+      @skip_7 = skip_7
     end
 
     def build(platform, library)
@@ -97,8 +98,12 @@ module Pod
       # Build Target Dynamic Framework for both device and Simulator
       device_defines = "#{defines} LIBRARY_SEARCH_PATHS=\"#{Dir.pwd}/#{@static_sandbox_root}/build\""
       device_options = ios_build_options << ' -sdk iphoneos'
-      xcodebuild(device_defines, device_options, 'build', @spec.name.to_s, @dynamic_sandbox_root.to_s)
-
+      if @skip_7
+        tmp_options = device_options << ' ARCHS=arm64'
+        xcodebuild(device_defines, tmp_options, 'build', @spec.name.to_s, @dynamic_sandbox_root.to_s)
+      else
+        xcodebuild(device_defines, device_options, 'build', @spec.name.to_s, @dynamic_sandbox_root.to_s)
+      end
       sim_defines = "#{defines} LIBRARY_SEARCH_PATHS=\"#{Dir.pwd}/#{@static_sandbox_root}/build-sim\" ONLY_ACTIVE_ARCH=NO"
       #origin: xcodebuild(sim_defines, '-sdk iphonesimulator', 'build-sim', @spec.name.to_s, @dynamic_sandbox_root.to_s)
       if @skip_i 
@@ -283,9 +288,17 @@ MAP
     def ios_build_options
       #origin: "ARCHS=\'x86_64 i386 arm64 armv7 armv7s\' OTHER_CFLAGS=\'-fembed-bitcode -Qunused-arguments\'"
       if @skip_i
-        "ARCHS=\'x86_64 arm64 armv7 armv7s\' OTHER_CFLAGS=\'-fembed-bitcode -Qunused-arguments\'"
+        if @skip_7
+          "ARCHS=\'x86_64 arm64 arm64e\' OTHER_CFLAGS=\'-fembed-bitcode -Qunused-arguments\'"
+        else
+          "ARCHS=\'x86_64 arm64 arm64e armv7 armv7s\' OTHER_CFLAGS=\'-fembed-bitcode -Qunused-arguments\'"
+        end
       else
-        "ARCHS=\'x86_64 i386 arm64 armv7 armv7s\' OTHER_CFLAGS=\'-fembed-bitcode -Qunused-arguments\'"
+        if @skip_7
+          "ARCHS=\'x86_64 i386 arm64 arm64e\' OTHER_CFLAGS=\'-fembed-bitcode -Qunused-arguments\'"
+        else
+          "ARCHS=\'x86_64 i386 arm64 arm64e armv7 armv7s\' OTHER_CFLAGS=\'-fembed-bitcode -Qunused-arguments\'"
+        end
       end
     end
 
