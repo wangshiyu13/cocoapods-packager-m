@@ -185,6 +185,8 @@ module Pod
       if platform.name == :ios
         options = ios_build_options
       end
+      
+      options << ' -sdk iphoneos'
 
       xcodebuild(defines, options)
 
@@ -287,18 +289,11 @@ MAP
 
     def ios_build_options
       #origin: "ARCHS=\'x86_64 i386 arm64 armv7 armv7s\' OTHER_CFLAGS=\'-fembed-bitcode -Qunused-arguments\'"
-      if @skip_i
-        if @skip_7
-          "ARCHS=\'x86_64 arm64 arm64e\' OTHER_CFLAGS=\'-fembed-bitcode -Qunused-arguments\'"
-        else
-          "ARCHS=\'x86_64 arm64 arm64e armv7 armv7s\' OTHER_CFLAGS=\'-fembed-bitcode -Qunused-arguments\'"
-        end
+
+      if @skip_7
+        "ARCHS=\'arm64\' OTHER_CFLAGS=\'-fembed-bitcode -Qunused-arguments\'"
       else
-        if @skip_7
-          "ARCHS=\'x86_64 i386 arm64 arm64e\' OTHER_CFLAGS=\'-fembed-bitcode -Qunused-arguments\'"
-        else
-          "ARCHS=\'x86_64 i386 arm64 arm64e armv7 armv7s\' OTHER_CFLAGS=\'-fembed-bitcode -Qunused-arguments\'"
-        end
+        "ARCHS=\'arm64 armv7\' OTHER_CFLAGS=\'-fembed-bitcode -Qunused-arguments\'"
       end
     end
 
